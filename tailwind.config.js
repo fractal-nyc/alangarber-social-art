@@ -9,7 +9,10 @@ module.exports = {
     },
     plugins: [],
     future: {
-      disableExperimentalOptimizer: true, // Forces Tailwind to use JS instead of Rust
+      disableExperimentalOptimizer: true, // 🚀 Forces Tailwind to use JavaScript instead of Rust
+    },
+    experimental: {
+      optimizeUniversalDefaults: false, // 🚀 Ensures Rust-based features are disabled
     },
   };
   
