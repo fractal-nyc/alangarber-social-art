@@ -1,5 +1,6 @@
 "use client";
 
+import "@/app/globals.css"; // ✅ Ensure Tailwind is loaded
 import { ClerkProvider, useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
 import Navbar from "@/components/Navbar";

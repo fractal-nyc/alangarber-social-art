@@ -11,8 +11,10 @@
   "dependencies": {
     "@clerk/nextjs": "^6.12.2",
     "@prisma/client": "^6.4.1",
+    "autoprefixer": "^10.4.20",
     "next": "15.2.0",
     "next-auth": "^4.24.11",
+    "postcss": "^8.5.3",
     "postgresql": "^0.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -20,7 +22,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
