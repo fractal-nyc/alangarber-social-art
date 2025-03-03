@@ -23,7 +23,13 @@ export default function FeedPage() {
       {artworks.map((art) => (
         <div key={art.id} className="border p-4">
           <h2 className="font-bold">{art.title}</h2>
-          <Image src={art.imageUrl} alt={art.title} width={400} height={400} className="w-full" />
+          <Image
+            src={art.imageUrl}
+            alt={art.title}
+            width={400}
+            height={400}
+            className="w-full"
+          />
         </div>
       ))}
     </div>
