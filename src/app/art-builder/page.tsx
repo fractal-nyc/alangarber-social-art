@@ -1,44 +1,65 @@
 "use client";
 
-import { useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import React, { useState } from "react";
 
-export default function ArtBuilderPage() {
-  const { user } = useUser();
-  const [title, setTitle] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+const ArtBuilder = () => {
+  const [description, setDescription] = useState("");
+  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
 
-  const handleSave = async () => {
-    const res = await fetch("/api/art", {
+  const generateGame = async () => {
+    if (!description.trim()) return;
+
+    const response = await fetch("/api/generate-game", {
       method: "POST",
-      body: JSON.stringify({ title, imageUrl }),
+      body: JSON.stringify({ prompt: description }),
       headers: { "Content-Type": "application/json" },
     });
-    if (res.ok) alert("Artwork saved!");
+
+    const data = await response.json();
+    setGeneratedCode(data.code);
   };
 
-  if (!user) return <p>Please log in</p>;
-
   return (
-    <div className="flex flex-col items-center">
-      <h1 className="text-2xl font-bold">Create Artwork</h1>
+    <div className="flex flex-col items-center mt-10">
+      <h1 className="text-2xl text-red-500 font-bold mb-4">AI Game Generator</h1>
+
+      {/* Square container for the AI-generated game */}
+      <div className="w-96 h-96 border border-gray-300 flex items-center justify-center">
+        {generatedCode ? (
+          <DynamicGame code={generatedCode} />
+        ) : (
+          <p className="text-gray-400">Generated game will appear here</p>
+        )}
+      </div>
+
+      {/* Input field to describe the game */}
       <input
         type="text"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="border p-2"
+        placeholder="Describe a game (e.g., 'Flappy Bird')"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="mt-4 px-4 py-2 border rounded w-80 text-black"
       />
-      <input
-        type="text"
-        placeholder="Image URL"
-        value={imageUrl}
-        onChange={(e) => setImageUrl(e.target.value)}
-        className="border p-2"
-      />
-      <button onClick={handleSave} className="bg-green-500 p-2 text-white">
-        Save
+
+      {/* Generate button */}
+      <button
+        onClick={generateGame}
+        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+      >
+        Generate Game
       </button>
     </div>
   );
-}
+};
+
+// Component that dynamically renders AI-generated code
+const DynamicGame = ({ code }: { code: string }) => {
+  try {
+    const Component = eval(`(() => { ${code}; return Game; })()`);
+    return <Component />;
+  } catch (error) {
+    return <p className="text-red-500">Error loading game: {String(error)}</p>;
+  }
+};
+
+export default ArtBuilder;
