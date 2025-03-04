@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     if (!generatedCode) {
       return NextResponse.json(
         { error: "AI did not return valid code" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     console.error("OpenAI API error:", error);
     return NextResponse.json(
       { error: "Failed to generate game" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
