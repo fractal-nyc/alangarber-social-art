@@ -14,12 +14,14 @@ datasource db {
 }
 
 model User {
-  id        String @id @default(uuid())
-  clerkId   String @unique
-  email     String @unique
-  name      String?
-  createdAt DateTime @default(now())
-  Art       Art[]
+  id          String   @id @default(uuid())
+  clerkUserId String   @unique
+  email       String   @unique
+  name        String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  Art         Art[]    @relation("UserArt")
 }
 
 model Art {
@@ -28,6 +30,5 @@ model Art {
   title     String
   imageUrl  String
   createdAt DateTime @default(now())
-
-  user      User @relation(fields: [userId], references: [id])
+  user      User @relation(fields: [userId], references: [id], name: "UserArt")
 }
