@@ -24,14 +24,15 @@ export async function POST(req: Request) {
             "You are an AI that generates JavaScript code for simple interactive games. " +
             "The game must run inside an existing <div id='game-container'>. " +
             "The script should use plain JavaScript (no external libraries, no React). " +
-            "The script should create and modify DOM elements dynamically inside 'game-container'. " +
             "Do NOT include import or export statements. " +
+            "Do NOT wrap the code inside `document.addEventListener('DOMContentLoaded', ...)` or `window.onload` handlers. " + // ✅ NEW RULE
+            "The script should immediately execute, assuming 'game-container' already exists. " +
             "Return only the JavaScript code inside triple backticks (` ``` `), with NO explanations.",
         },
         {
           role: "user",
           content: `Generate a simple JavaScript game based on the following description: "${prompt}". 
-          The game should be interactive and run inside <div id='game-container'>, modifying the DOM directly.`,
+            The game should be interactive and run inside <div id='game-container'>, modifying the DOM directly.`,
         },
       ],
       temperature: 0.7,
@@ -51,6 +52,7 @@ export async function POST(req: Request) {
     console.log("Extracted JavaScript Code:", generatedCode);
 
     if (!generatedCode) {
+      console.log("aiResponse:", aiResponse.choices[0]?.message?.content);
       return NextResponse.json(
         { error: "AI did not return valid JavaScript" },
         { status: 500 },

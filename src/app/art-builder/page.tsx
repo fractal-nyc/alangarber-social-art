@@ -29,7 +29,7 @@ const ArtBuilder = () => {
         return;
       }
 
-      // ✅ Use the JavaScript code directly, assuming it's valid
+      // ✅ Store the JavaScript code for execution
       setGeneratedCode(data.code.trim());
     } catch (error) {
       console.error("Error generating game:", error);
@@ -42,18 +42,22 @@ const ArtBuilder = () => {
   useEffect(() => {
     if (!generatedCode) return;
 
-    // ✅ Clear previous game instance
+    // ✅ Ensure the game container exists before executing JavaScript
     const gameContainer = document.getElementById("game-container");
-    if (gameContainer) {
-      gameContainer.innerHTML = ""; // Remove previous elements
+    if (!gameContainer) {
+      console.error("Game container not found!");
+      return;
     }
+
+    // ✅ Remove old game elements
+    gameContainer.innerHTML = "";
 
     // ✅ Remove old script if it exists
     if (scriptRef.current) {
       scriptRef.current.remove();
     }
 
-    // ✅ Create a new script tag
+    // ✅ Inject and execute the new script
     const script = document.createElement("script");
     script.textContent = generatedCode;
     scriptRef.current = script;
@@ -74,13 +78,14 @@ const ArtBuilder = () => {
       </h1>
 
       {/* Square container for the AI-generated game */}
-      <div className="w-96 h-96 border border-gray-300 flex items-center justify-center relative">
-        {isLoading ? (
+      <div
+        id="game-container"
+        className="w-96 h-96 border border-gray-300 flex items-center justify-center relative"
+      >
+        {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70">
             <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
           </div>
-        ) : (
-          <div id="game-container" className="w-96 h-96"></div>
         )}
       </div>
 

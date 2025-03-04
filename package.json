@@ -6,11 +6,14 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
+    "game:build": "bun build game.ts --outfile game.js",
+    "game": "bun game:build && bun run server.ts",
     "lint": "next lint"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.12.2",
     "@prisma/client": "^6.4.1",
+    "bun": "^1.2.4",
     "next": "15.2.0",
     "next-auth": "^4.24.11",
     "openai": "^4.86.1",
@@ -31,6 +34,9 @@
     "postcss": "^8.5.3",
     "prisma": "^6.4.1",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
-  }
+    "typescript": "^5",
+    "@types/bun": "latest"
+  },
+  "module": "index.ts",
+  "type": "module"
 }
