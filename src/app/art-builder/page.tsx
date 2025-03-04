@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const ArtBuilder = () => {
   const [description, setDescription] = useState("");
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false); // ✅ Track loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
 
   const generateGame = async () => {
     if (!description.trim() || isLoading) return;
 
-    setIsLoading(true); // ✅ Start loading state
+    setIsLoading(true);
 
     try {
       const response = await fetch("/api/generate-game", {
@@ -20,13 +21,51 @@ const ArtBuilder = () => {
       });
 
       const data = await response.json();
-      setGeneratedCode(data.code);
+      console.log("Full API Response:", data); // ✅ Debugging
+
+      if (!data || !data.code) {
+        console.error("API did not return valid JavaScript:", data);
+        setGeneratedCode(null);
+        return;
+      }
+
+      // ✅ Use the JavaScript code directly, assuming it's valid
+      setGeneratedCode(data.code.trim());
     } catch (error) {
       console.error("Error generating game:", error);
+      setGeneratedCode(null);
     }
 
-    setIsLoading(false); // ✅ Stop loading state
+    setIsLoading(false);
   };
+
+  useEffect(() => {
+    if (!generatedCode) return;
+
+    // ✅ Clear previous game instance
+    const gameContainer = document.getElementById("game-container");
+    if (gameContainer) {
+      gameContainer.innerHTML = ""; // Remove previous elements
+    }
+
+    // ✅ Remove old script if it exists
+    if (scriptRef.current) {
+      scriptRef.current.remove();
+    }
+
+    // ✅ Create a new script tag
+    const script = document.createElement("script");
+    script.textContent = generatedCode;
+    scriptRef.current = script;
+    document.body.appendChild(script); // ✅ Inject JavaScript into the DOM
+
+    return () => {
+      // ✅ Cleanup: Remove script when component unmounts
+      if (scriptRef.current) {
+        scriptRef.current.remove();
+      }
+    };
+  }, [generatedCode]);
 
   return (
     <div className="flex flex-col items-center mt-10">
@@ -40,10 +79,8 @@ const ArtBuilder = () => {
           <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70">
             <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
           </div>
-        ) : generatedCode ? (
-          <DynamicGame code={generatedCode} />
         ) : (
-          <p className="text-gray-400">Generated game will appear here</p>
+          <div id="game-container" className="w-96 h-96"></div>
         )}
       </div>
 
@@ -59,7 +96,7 @@ const ArtBuilder = () => {
       {/* Generate button */}
       <button
         onClick={generateGame}
-        disabled={isLoading} // ✅ Disable while loading
+        disabled={isLoading}
         className={`mt-4 px-4 py-2 rounded ${
           isLoading
             ? "bg-gray-400 cursor-not-allowed"
@@ -70,16 +107,6 @@ const ArtBuilder = () => {
       </button>
     </div>
   );
-};
-
-// Component that dynamically renders AI-generated code
-const DynamicGame = ({ code }: { code: string }) => {
-  try {
-    const Component = eval(`(() => { ${code}; return Game; })()`);
-    return <Component />;
-  } catch (error) {
-    return <p className="text-red-500">Error loading game: {String(error)}</p>;
-  }
 };
 
 export default ArtBuilder;
