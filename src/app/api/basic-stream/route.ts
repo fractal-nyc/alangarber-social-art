@@ -9,14 +9,12 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
-    console.log("🚀 Game generation API started");
+    console.log("🚀 Basic streaming API started");
 
     // Parse the request body
-    const body = await req.json();
-    const prompt = body.prompt;
+    const { prompt } = await req.json();
 
     if (!prompt) {
-      console.log("❌ Missing prompt");
       return NextResponse.json({ error: "Missing prompt" }, { status: 400 });
     }
 
@@ -32,10 +30,16 @@ export async function POST(req: Request) {
         - Entire game must fit in one file
         - Use only vanilla JavaScript with HTML5 canvas
         - No external dependencies
-        - Include canvas setup and initialization
-        - Make the canvas 800x600 pixels
-        - Include comments explaining the code
-        - Console log the controls for the game
+        - Code must be between game template markers
+        
+        Game Template Instructions:
+        Create a simple HTML5 canvas game with these requirements:
+        1. Use HTML5 canvas for rendering
+        2. Include basic game mechanics
+        3. Respond with complete, runnable code
+        4. No external libraries
+        5. Include comments explaining the code
+        6. Console log the controls for the game
         
         FORMAT YOUR RESPONSE EXACTLY LIKE THIS:
         \`\`\`javascript
@@ -45,7 +49,7 @@ export async function POST(req: Request) {
       {
         role: "user",
         content: `Please generate a game based on this description: "${prompt}". 
-        Make sure it is complete and ready to run.`,
+        Follow ALL provided template guidelines strictly.`,
       },
     ];
 
@@ -57,9 +61,6 @@ export async function POST(req: Request) {
       stream: true,
       temperature: 0.6,
       max_tokens: 1500,
-      top_p: 0.9,
-      frequency_penalty: 0.2,
-      presence_penalty: 0.2,
     });
 
     // Create a readable stream to pipe the response
@@ -70,31 +71,16 @@ export async function POST(req: Request) {
         console.log("🌊 Stream started");
 
         try {
-          let totalContent = "";
-          let chunkCount = 0;
-
           for await (const chunk of stream) {
             // Get the content from the chunk
             const content = chunk.choices[0]?.delta?.content || "";
 
             if (content) {
-              totalContent += content;
-              chunkCount++;
-
               // Send the raw content directly to the client
               controller.enqueue(textEncoder.encode(content));
-
-              if (chunkCount % 50 === 0) {
-                console.log(
-                  `🔄 Processed ${chunkCount} chunks, current length: ${totalContent.length}`,
-                );
-              }
             }
           }
-
-          console.log(
-            `✅ Stream completed with ${chunkCount} chunks, total length: ${totalContent.length}`,
-          );
+          console.log("✅ Stream completed");
           controller.close();
         } catch (error) {
           console.error("❌ Stream error:", error);
