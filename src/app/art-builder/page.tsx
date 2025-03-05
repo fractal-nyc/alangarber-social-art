@@ -1,117 +1,92 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 
-const ArtBuilder = () => {
+export default function ArtBuilderPage() {
   const [description, setDescription] = useState("");
-  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const scriptRef = useRef<HTMLScriptElement | null>(null);
+  const [gameHTML, setGameHTML] = useState<string | null>(null);
 
-  const generateGame = async () => {
+  async function generateGame() {
     if (!description.trim() || isLoading) return;
 
     setIsLoading(true);
+    setGameHTML(null); // Reset previous game
 
     try {
       const response = await fetch("/api/generate-game", {
         method: "POST",
-        body: JSON.stringify({ prompt: description }),
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: description }),
       });
 
-      const data = await response.json();
-      console.log("Full API Response:", data); // ✅ Debugging
-
-      if (!data || !data.code) {
-        console.error("API did not return valid JavaScript:", data);
-        setGeneratedCode(null);
-        return;
+      if (!response.ok) {
+        throw new Error("Failed to generate game");
       }
 
-      // ✅ Store the JavaScript code for execution
-      setGeneratedCode(data.code.trim());
+      const html = await response.text();
+      setGameHTML(html); // Store generated game HTML
     } catch (error) {
-      console.error("Error generating game:", error);
-      setGeneratedCode(null);
+      console.error("Error:", error);
+      alert("Failed to generate game.");
     }
 
     setIsLoading(false);
-  };
+  }
 
-  useEffect(() => {
-    if (!generatedCode) return;
+  function openGameInNewTab() {
+    if (!gameHTML) return;
 
-    // ✅ Ensure the game container exists before executing JavaScript
-    const gameContainer = document.getElementById("game-container");
-    if (!gameContainer) {
-      console.error("Game container not found!");
-      return;
+    const gameWindow = window.open("", "_blank");
+    if (gameWindow) {
+      gameWindow.document.write(gameHTML);
+      gameWindow.document.close();
+    } else {
+      alert("Popup blocked! Please allow popups for this site.");
     }
-
-    // ✅ Remove old game elements
-    gameContainer.innerHTML = "";
-
-    // ✅ Remove old script if it exists
-    if (scriptRef.current) {
-      scriptRef.current.remove();
-    }
-
-    // ✅ Inject and execute the new script
-    const script = document.createElement("script");
-    script.textContent = generatedCode;
-    scriptRef.current = script;
-    document.body.appendChild(script); // ✅ Inject JavaScript into the DOM
-
-    return () => {
-      // ✅ Cleanup: Remove script when component unmounts
-      if (scriptRef.current) {
-        scriptRef.current.remove();
-      }
-    };
-  }, [generatedCode]);
+  }
 
   return (
-    <div className="flex flex-col items-center mt-10">
-      <h1 className="text-2xl text-red-500 font-bold mb-4">
-        AI Game Generator
-      </h1>
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <h1 className="text-3xl font-bold">Art Builder</h1>
 
-      {/* Square container for the AI-generated game */}
-      <div
-        id="game-container"
-        className="w-96 h-96 border border-gray-300 flex items-center justify-center relative"
-      >
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70">
-            <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-          </div>
-        )}
-      </div>
-
-      {/* Input field to describe the game */}
       <input
         type="text"
-        placeholder="Describe a game (e.g., 'Flappy Bird')"
+        placeholder="Describe your game (e.g., 'Flappy Bird')"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         className="mt-4 px-4 py-2 border rounded w-80 text-black"
       />
 
-      {/* Generate button */}
-      <button
-        onClick={generateGame}
-        disabled={isLoading}
-        className={`mt-4 px-4 py-2 rounded ${
-          isLoading
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-blue-500 text-white"
-        }`}
-      >
-        {isLoading ? "Generating..." : "Generate Game"}
-      </button>
+      {/* Generate Button */}
+      {!gameHTML && (
+        <button
+          onClick={generateGame}
+          disabled={isLoading}
+          className={`mt-4 px-4 py-2 rounded ${
+            isLoading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-500 text-white"
+          }`}
+        >
+          {isLoading ? "Generating..." : "Generate Game"}
+        </button>
+      )}
+
+      {/* Loading Spinner */}
+      {isLoading && (
+        <div className="mt-4 w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+      )}
+
+      {/* "Take Me to Game" Button (only appears when the game is ready) */}
+      {gameHTML && !isLoading && (
+        <button
+          onClick={openGameInNewTab}
+          className="mt-4 px-4 py-2 bg-green-500 text-white rounded"
+        >
+          Take Me To Game
+        </button>
+      )}
     </div>
   );
-};
-
-export default ArtBuilder;
+}
