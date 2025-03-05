@@ -57,9 +57,11 @@ export default function ArtBuilderPage() {
         const chunk = decoder.decode(value, { stream: true });
         setContent((prev) => prev + chunk);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error during streaming:", err);
-      setError(`Error: ${err.message}`);
+      setError(
+        `Error: ${err instanceof Error ? err.message : "An unknown error occurred"}`,
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -152,9 +154,11 @@ export default function ArtBuilderPage() {
 
         setGameHTML(html);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error processing code:", err);
-      setError(`Error processing code: ${err.message}`);
+      setError(
+        `Error processing code: ${err instanceof Error ? err.message : "An unknown error occurred"}`,
+      );
     }
   }, [content]);
 

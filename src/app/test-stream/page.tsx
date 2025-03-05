@@ -9,7 +9,7 @@ export default function BasicStreaming() {
   const [error, setError] = useState("");
 
   // Start the stream
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!prompt.trim()) {
@@ -55,7 +55,9 @@ export default function BasicStreaming() {
       }
     } catch (err) {
       console.error("Error during streaming:", err);
-      setError(`Error: ${err.message}`);
+      setError(
+        `Error: ${err instanceof Error ? err.message : "An unknown error occurred"}`,
+      );
     } finally {
       setStreaming(false);
     }
